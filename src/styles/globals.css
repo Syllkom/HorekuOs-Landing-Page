@@ -1,26 +1,614 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ededed;
+  --grid-color: #1a1a1a;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --hero-title: #2a2a2a;
+  --text-primary: #e5e5e5;
+  --text-secondary: #9ca3af;
+  --accent-white: #ffffff;
+  
+  /* New pricing card variables */
+  --bg-color: #050505;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --text-main: #ffffff;
+  --accent-gold: #f3ba4b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-hero-title: var(--hero-title);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-white: var(--accent-white);
+  --font-nunito: 'Nunito', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: var(--foreground);
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    margin: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-effect-strong {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Logo en esquina izquierda */
+  .nav-logo-corner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* New Navbar Styles */
+  .navbar {
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    border-radius: 999px;
+    width: max-content;
+    height: max-content;
+    /* Applying the existing glass effect as requested */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Applying the new shadow from the example */
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-list {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .nav-link {
+    text-decoration: none;
+    color: #a1a1a1;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    border-radius: 999px;
+  }
+
+  .nav-link:hover {
+    color: #ffffff;
+  }
+
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-item.active .nav-link {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+  }
+
+  .nav-item::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 22px;
+    height: 2px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-item.active::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  /* Botón Premium en esquina derecha */
+  .premium-btn-corner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(255, 255, 255, 0.1),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  }
+
+  @media (min-width: 1024px) {
+    .premium-btn-corner {
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+    }
+  }
+
+  .premium-btn-corner:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.5),
+      0 4px 12px rgba(255, 255, 255, 0.2),
+      inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .premium-btn-corner:active {
+    transform: translateY(0);
+  }
+
+  /* Pricing Card Styles */
+  .pricing-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  @media (min-width: 1024px) {
+    .pricing-card {
+      border-radius: 24px;
+      padding: 40px 30px;
+    }
+  }
+
+  .pricing-card:not(.popular):hover {
+    transform: scale(1.02);
+  }
+
+  .pricing-card.popular {
+    transform: scale(1.05);
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+      0 0 15px rgba(255, 255, 255, 0.08),
+      0 0 40px rgba(255, 255, 255, 0.1),
+      0 0 80px rgba(255, 255, 255, 0.05);
+  }
+
+  .pricing-card.popular:hover {
+    transform: scale(1.07);
+  }
+
+  .pricing-card.vip {
+    border: 1px solid rgba(243, 186, 75, 0.5);
+    box-shadow: 
+      0 0 15px rgba(243, 186, 75, 0.15),
+      0 0 40px rgba(243, 186, 75, 0.2),
+      0 0 90px rgba(243, 186, 75, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+
+  .plan-name {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-main);
+  }
+
+  @media (min-width: 1024px) {
+    .plan-name {
+      font-size: 1.1rem;
+    }
+  }
+
+  .badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px 10px;
+    border-radius: 16px;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+  }
+
+  @media (min-width: 1024px) {
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      gap: 5px;
+    }
+  }
+
+  .badge.vip {
+    background: rgba(243, 186, 75, 0.1);
+    color: var(--accent-gold);
+    border: 1px solid rgba(243, 186, 75, 0.2);
+  }
+
+  .price-container {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  @media (min-width: 1024px) {
+    .price {
+      font-size: 3.5rem;
+    }
+  }
+
+  .period {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+  }
+
+  @media (min-width: 1024px) {
+    .period {
+      font-size: 0.9rem;
+    }
+  }
+
+  .card-description {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    min-height: 50px;
+  }
+
+  @media (min-width: 1024px) {
+    .card-description {
+      font-size: 0.85rem;
+      margin-bottom: 30px;
+      min-height: 60px;
+    }
+  }
+
+  .pricing-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    .pricing-btn {
+      padding: 12px;
+      border-radius: 25px;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+  }
+
+  .pricing-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .pricing-btn:active {
+    transform: translateY(0);
+  }
+
+  .pricing-btn.btn-white {
+    background: white;
+    color: black;
+  }
+
+  .pricing-btn.btn-gold {
+    background: var(--accent-gold);
+    color: #4a3200;
+    box-shadow: 0 0 25px rgba(243, 186, 75, 0.3);
+  }
+
+  /* Efecto brillante para botones premium */
+  .pricing-btn.btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  .pricing-btn.btn-shine:hover::before {
+    left: 100%;
+  }
+
+  .pricing-btn.btn-shine {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  .pricing-btn.btn-gold.btn-shine {
+    animation: pulse-glow-gold 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow-gold {
+    0%, 100% {
+      box-shadow: 0 0 25px rgba(243, 186, 75, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 35px rgba(243, 186, 75, 0.5), 0 0 45px rgba(243, 186, 75, 0.3);
+    }
+  }
+
+  .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: 10px;
+  }
+
+  @media (min-width: 1024px) {
+    .feature-item {
+      gap: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+  }
+
+  .check-icon {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+  }
+
+  @media (min-width: 1024px) {
+    .check-icon {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      font-size: 10px;
+    }
+  }
+
+  .header-bg-text {
+    position: absolute;
+    font-size: 120px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.03);
+    z-index: 0;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  @media (min-width: 768px) {
+    .header-bg-text {
+      font-size: 180px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .header-bg-text {
+      font-size: 240px;
+    }
+  }
+
+  /* Chat Input Button Animations */
+  .chat-plus-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .chat-plus-btn:hover {
+    background: linear-gradient(135deg, #555555 0%, #666666 100%);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3), 0 0 40px rgba(168, 85, 247, 0.2);
+    transform: scale(1.05);
+  }
+
+  .chat-plus-btn:active {
+    transform: scale(0.95);
+  }
+
+  .chat-mic-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .chat-mic-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  }
+
+  .chat-mic-btn:active {
+    transform: scale(0.95);
+  }
+
+  .chat-send-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .chat-send-btn:hover {
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 0 20px rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .chat-send-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Keyframe for ping animation */
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  .animate-ping {
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Floating animation for labels - Smoother and slower */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes floatDelayed {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .floating-label {
+    animation: float 5s ease-in-out infinite;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .floating-label-delayed {
+    animation: floatDelayed 5s ease-in-out infinite;
+    animation-delay: 2.5s;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .floating-label:active,
+  .floating-label-delayed:active {
+    animation-play-state: paused;
+  }
+
+  /* Efecto de burbujas para el botón Reservar */
+  .bubble-effect {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: bubble-rise 1s ease-out forwards;
+  }
+
+  @keyframes bubble-rise {
+    0% {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(-50%, -150px) scale(3);
+      opacity: 0;
+    }
+  }
 }
