@@ -33,7 +33,7 @@ export default function ChatInput() {
           className="flex-1 bg-transparent border-none outline-none text-[#9ca3af] placeholder:text-[#9ca3af] text-sm sm:text-base font-normal min-w-0"
         />
 
-        {/* Microphone Button */}
+        {/* Botón mricroono */}
         <button 
           onMouseEnter={() => setIsMicHovered(true)}
           onMouseLeave={() => setIsMicHovered(false)}
@@ -53,7 +53,7 @@ export default function ChatInput() {
           />
         </button>
 
-        {/* Send Button */}
+        {/* Enviar Botón */}
         <button 
           onMouseEnter={() => setIsSendHovered(true)}
           onMouseLeave={() => setIsSendHovered(false)}
