@@ -25,7 +25,7 @@ export default function Document() {
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://horekuos.com/" />
+        <meta property="og:url" content="https://horekuos.onrender.com/" />
         <meta property="og:title" content="HorekuOs - Bot de WhatsApp con IA" />
         <meta property="og:description" content="La revolución de los bots de WhatsApp impulsados por inteligencia artificial de última generación" />
         <meta property="og:image" content="/images/cover.png" />
