@@ -14,7 +14,7 @@ export default function PricingCard({
   
   return (
     <div className={`pricing-card ${isPopular ? 'popular' : ''} ${isVIP ? 'vip' : ''} hover:scale-105 active:scale-100 transition-transform duration-300`}>
-      {/* Header with Plan Name and Badge */}
+      {/* Nombre del plan (tarjeta) */}
       <div className="card-header">
         <span className="plan-name">{planName}</span>
         {badge && (
@@ -25,25 +25,25 @@ export default function PricingCard({
         )}
       </div>
 
-      {/* Price */}
+      {/* Precio */}
       <div className="price-container">
         <h2 className="price">{price}</h2>
         <span className="period">{period}</span>
       </div>
 
-      {/* Description */}
+      {/* Descripción */}
       <p className="card-description">
         {description}
       </p>
 
-      {/* CTA Button */}
+      {/* CTA Botón (comprar) */}
       <button 
         className={`pricing-btn ${isVIP ? 'btn-gold' : 'btn-white'} ${isPremium ? 'btn-shine' : ''}`}
       >
         Comprar
       </button>
 
-      {/* Features List */}
+      {/* Lista de funciones  ✓ (lo que trae cada plan) */}
       <ul className="features-list">
         {features.map((feature, index) => (
           <li key={index} className="feature-item">
