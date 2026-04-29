@@ -97,7 +97,7 @@ GOOGLE_API_KEY=tu_api_key_aqui  # Opcional: para integraciones con Google AI
 
 ```bash
 git clone https://github.com/Syllkom/HorekuOs
-cd HorekuOs-Base
+cd HorekuOs
 npm install
 ```
 
