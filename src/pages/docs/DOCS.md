@@ -97,7 +97,7 @@ GOOGLE_API_KEY=tu_api_key_aqui  # Opcional: para integraciones con Google AI
 
 ```bash
 git clone https://github.com/Syllkom/HorekuOs
-cd HorekuOs
+cd HorekuOs-Base
 npm install
 ```
 
@@ -111,11 +111,12 @@ global.config = {
     prefixes: ".¿?¡!#%&/,~@",   // Caracteres que activan comandos
     saveHistory: true,          // Guardar historial de mensajes
     autoRead: true              // Marcar mensajes como leídos
+    silentConsole: true         // Oculta los mensajes de entrada de la consola
 };
 
 // Roles de usuario (usar número sin símbolos)
 global.config.userRoles = {
-    "521234567890": {
+    "36082607472889@lid": {
         root: true,   // Acceso total
         owner: true,  // Propietario
         mod: true,    // Moderador
@@ -339,7 +340,7 @@ const plugins = new Plugins(folderPath, defaultContext)
 
 ---
 
-#### `db` — `library/storage/HyperDBAdapter.js`
+## `db` — `library/storage/HyperDBAdapter.js`
 
 Implementación de `@syllkom/hyper-db` (v3.0.0). Es una base de datos NoSQL fragmentada (sharded) de alto rendimiento respaldada por **LMDB**. Utiliza **Proxies de JS** para interceptar cambios de forma transparente, eliminando la necesidad de comandos explícitos de guardado.
 
@@ -601,7 +602,7 @@ Genera una interfaz interactiva universal inyectando un documento fantasma (`fil
 - `list`: Despliega un modal con secciones y filas (single_select).
 
 **Ejemplo de uso:**
-\`\`\`javascript
+```javascript
 await sock.sendInteractiveMenu(m.chat.id, {
     title: 'HorekuOs System',
     body: 'Elige una opción',
@@ -612,13 +613,66 @@ await sock.sendInteractiveMenu(m.chat.id, {
         { type: 'url', text: 'Soporte', url: 'https://wa.me/...' }
     ]
 });
-\`\`\`
+```
+
+### `sock.sendProfileCard(jid, data, options)`
+Genera una tarjeta de perfil híbrida. Permite combinar un botón de pago nativo (`review_and_pay`) con botones de respuesta rápida (`quick_reply`) en un solo bloque visual.
+
+**Ejemplo:**
+```javascript
+await sock.sendProfileCard(m.chat.id, {
+    image: bannerBuffer,
+    title: "HorekuOs Advanced Engine",
+    price: 374,
+    currency: "IDR",
+    body: "Menú Principal",
+    footer: "Powered by Syllkom",
+    buttonText: "Owner Contact",
+    buttonId: ".owner",
+    verified: false
+}, {
+    quoted: await sock.fakeOrder(m.chat.id, {
+        image: ppUrl,
+        message: `Versión: 3.0.2`,
+        orderTitle: m.sender.name,
+        price: 374,
+        currency: 'USD'
+    })
+});
+```
+
+### `sock.sendBottomSheet(jid, data, buttons, options)`
+Despliega un menú inferior nativo (Bottom Sheet) en la pantalla del usuario. Ideal para menús de configuración o listas de opciones largas.
+
+**Ejemplo:**
+```javascript
+await sock.sendBottomSheet(m.chat.id, {
+    title: "Configuración",
+    body: "Ajustes del grupo",
+    listTitle: "Opciones",
+    buttonTitle: "Abrir Menú"
+},[
+    { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "Antilink ON", id: ".antilink on" }) }
+]);
+```
+
+### `sock.sendAlbumMessage(jid, medias, options)`
+Agrupa múltiples imágenes o videos en un solo mensaje tipo "Álbum" (como en Instagram). Evita el spam visual en el chat.
+
+**Ejemplo:**
+```javascript
+const slides =[
+    { type: 'image', data: { url: 'link1.jpg' } },
+    { type: 'video', data: { url: 'link2.mp4' } }
+];
+await sock.sendAlbumMessage(m.chat.id, slides, { caption: "Resultados de búsqueda" });
+```
 
 ### `sock.sendInvoice(jid, data, options)`
 Genera una tarjeta de facturación compacta (Fondo negro nativo) usando el botón de pago `review_and_pay` v1. Elude la carga de imágenes pesadas para no corromper la estética.
 
 **Ejemplo de uso (Economía):**
-\`\`\`javascript
+```javascript
 await sock.sendInvoice(m.chat.id, { 
     title: 'HorekuOs Banco',         
     body: '● Billetera: 1000 Soles\n● Banco: 500 Soles',                        
@@ -630,7 +684,19 @@ await sock.sendInvoice(m.chat.id, {
     currency: 'PEN',
     image: urlPerfil // Miniatura
 });
-\`\`\`
+```
+
+### `sock.resizePhoto(data)`
+Utilidad de alto rendimiento en RAM respaldada por `sharp`. Redimensiona imágenes y las comprime a JPEG para generar miniaturas (`jpegThumbnail`) compatibles con los Protobufs estrictos de Meta.
+
+**Ejemplo:**
+```javascript
+const thumbBuffer = await sock.resizePhoto({ 
+    image: bufferOriginal, 
+    scale: 300, 
+    result: 'buffer' 
+});
+```
 
 ### `sock.sendRichResponse(jid, data, options)`
 La joya de la corona. Construye la interfaz visual nativa de Meta AI, renderizando Carruseles, Tablas, Bloques de Código iluminado y Popups de Citación.
@@ -642,23 +708,34 @@ La joya de la corona. Construye la interfaz visual nativa de Meta AI, renderizan
 - `code`: `{ language, code }` (Pasa por un Tokenizer interno para Highlight syntax).
 
 **Ejemplo de uso:**
-\`\`\`javascript
+```javascript
 await sock.sendRichResponse(m.chat.id, {
-    text: "Resultados interceptados:",
-    links: [ { title: "GitHub", url: "https://github.com" } ],
+    text: "test:",
+    
+    links: linksData,
+    reels: reelsData,
+
     table: {
-        title: "Latencia",
-        headers: ["Host", "Ping"],
-        rows: [ ["Syllkom", "1.6ms"], ["BoxMine", "4.2ms"] ]
+        title: "Status",
+        headers: ["Servidor", "Latencia"],
+        rows: [
+            ["Syllkom", "1.6ms"],
+            ["HorekuOs", "4.2ms"]
+        ]
+    },
+
+    code: {
+        language: "python",
+        code: pyCode
     }
 });
-\`\`\`
+```
 
 ### `sock.fakeOrder(jid, options)`
 Generador de contexto falso. Útil exclusivamente para inyectar en la propiedad `quoted` de otras funciones, simulando que el bot está respondiendo a una orden de pago inexistente.
 
 **Ejemplo de uso:**
-\`\`\`javascript
+```javascript
 const quotedFake = await sock.fakeOrder(m.chat.id, {
     image: urlPerfil,
     message: `Versión: 3.0.2`,
@@ -667,7 +744,84 @@ const quotedFake = await sock.fakeOrder(m.chat.id, {
     currency: 'USD'
 });
 // Pasarlo en options: { quoted: quotedFake }
-\`\`\`
+```
+
+### `sock.fakePayment(jid, options)`
+Generador de contexto falso. Útil exclusivamente para inyectar en la propiedad `quoted` de otras funciones, simulando que el bot está respondiendo a un Payment de pago inexistente.
+
+**Ejemplo de uso:**
+```javascript
+const quotedFake = await sock.fakePayment(m.chat.id, {
+    message: `Diagnóstico solicitado por ${m.sender.name}`,
+    price: 3340,
+    currency: 'USD',
+    requestFrom: m.sender.id
+});
+// Pasarlo en options: { quoted: quotedFake }
+```
+
+### `sock.sendCatalog(jid, data, options)`
+Genera una tarjeta de producto de catálogo nativa (`productMessage`). Utiliza un bypass de JID fantasma (`0@s.whatsapp.net`) para evitar que los servidores de Meta validen el producto y arrojen el error de "Artículo no disponible".
+
+**Ejemplo:**
+```javascript
+await sock.sendCatalog(m.chat.id, {
+    title: "AlightMotion Mod Premium",
+    body: "● Soporte > 5MB\n● Sin marca de agua",
+    price: 0,
+    currency: "IDR",
+    image: bufferImagen, // Buffer o URL
+    url: "https://github.com/Syllkom"
+});
+```
+
+### `sock.sendOrder(jid, data, options)`
+Genera un recibo de orden de compra nativo (`orderMessage`). A diferencia del Invoice, este diseño es el clásico gris de WhatsApp Business. Es ideal para confirmaciones de transacciones o para usarlo como contexto falso (`fakeOrder`).
+
+**Ejemplo:**
+```javascript
+await sock.sendOrder(m.chat.id, {
+    title: "Suscripción VIP",
+    text: "Pago procesado con éxito",
+    itemCount: 1,
+    price: 15,
+    currency: "USD",
+    image: urlPerfil // Se comprime a miniatura automáticamente
+});
+```
+
+### `sock.sendPayment(jid, data, options)`
+Despliega una pasarela de pago directa (`interactiveMessage` con `review_and_pay`). Está configurada para integraciones de pagos estáticos (como PIX o Email) directamente en la UI del chat.
+
+**Ejemplo:**
+```javascript
+await sock.sendPayment(m.chat.id, {
+    body: "▢ *FACTURACIÓN*\nPor favor, completa el pago para continuar.",
+    footer: "Transacción Segura",
+    amount: 15, // Se multiplica por 100 internamente (Offset)
+    currency: "BRL",
+    merchant: "HorekuOs Store",
+    key: "pagos@horekuos.com" // Tu llave PIX o Email
+});
+```
+
+### `sock.sendCards(jid, data, options)`
+Genera una tarjeta interactiva genérica con un encabezado de imagen a tamaño completo (`imageMessage`) y soporte para botones nativos en la versión 3 del protocolo.
+
+**Ejemplo:**
+```javascript
+await sock.sendCards(m.chat.id, {
+    text: "▢ *MENÚ PRINCIPAL*\nSelecciona una opción:",
+    footer: "Powered by HorekuOs",
+    image: "https://files.catbox.moe/obz4b4.jpg",
+    buttons:[
+        { 
+            name: "quick_reply", 
+            buttonParamsJson: JSON.stringify({ display_text: "Ping", id: ".ping" }) 
+        }
+    ]
+});
+```
 
 ## Sistema de Plugins
 
