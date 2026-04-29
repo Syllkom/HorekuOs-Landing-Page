@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import GridBackground from './GridBackground';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
@@ -14,10 +15,7 @@ export default function Footer() {
     const element = document.getElementById(sectionId);
     if (element) {
       const offsetTop = element.offsetTop - 100;
-      window.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth',
-      });
+      window.scrollTo({ top: offsetTop, behavior: 'smooth' });
     }
   };
 
@@ -27,14 +25,8 @@ export default function Footer() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const newBubble = {
-      id: Date.now(),
-      x,
-      y,
-    };
-
+    const newBubble = { id: Date.now(), x, y };
     setBubbles(prev => [...prev, newBubble]);
-
     setTimeout(() => {
       setBubbles(prev => prev.filter(bubble => bubble.id !== newBubble.id));
     }, 1000);
@@ -46,7 +38,7 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-black text-white">
-      {/* Contact Section */}
+      {/* Documentation Section */}
       <div className="relative text-center px-4 overflow-hidden min-h-[800px] flex flex-col justify-center items-center">
         <div className="absolute inset-0 flex justify-center items-start pt-24 md:pt-10 pointer-events-none">
           <Image 
@@ -58,27 +50,26 @@ export default function Footer() {
           />
         </div>
         <div className="relative z-10">
-          <h2 className="text-4xl font-bold tracking-wider mb-4">PONGÁMONOS</h2>
-          <h2 className="text-4xl font-bold tracking-wider mb-8">EN CONTACTO</h2>
-          <button 
-            onClick={createBubble}
-            className="relative bg-white text-black font-bold py-3 px-10 rounded-full text-lg transition-all duration-300 shadow-[0_0_15px_4px_rgba(255,255,255,0.4)] hover:shadow-[0_0_25px_8px_rgba(255,255,255,0.6)] overflow-hidden"
-          >
-            Reservar
-            {bubbles.map(bubble => (
-              <span
-                key={bubble.id}
-                className="bubble-effect"
-                style={{
-                  left: bubble.x,
-                  top: bubble.y,
-                }}
-              />
-            ))}
-          </button>
+          <h2 className="text-4xl font-bold tracking-wider mb-4">EXPLORA LA</h2>
+          <h2 className="text-4xl font-bold tracking-wider mb-8">DOCUMENTACIÓN</h2>
+          <Link href="/docs">
+            <button 
+              onClick={createBubble}
+              className="relative bg-white text-black font-bold py-3 px-10 rounded-full text-lg transition-all duration-300 shadow-[0_0_15px_4px_rgba(255,255,255,0.4)] hover:shadow-[0_0_25px_8px_rgba(255,255,255,0.6)] overflow-hidden"
+            >
+              Leer Docs
+              {bubbles.map(bubble => (
+                <span
+                  key={bubble.id}
+                  className="bubble-effect"
+                  style={{ left: bubble.x, top: bubble.y }}
+                />
+              ))}
+            </button>
+          </Link>
         </div>
       </div>
-
+      
       {/* Footer Info Section */}
       <div className="relative w-full py-16 px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 z-0">

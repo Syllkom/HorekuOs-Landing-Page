@@ -51,7 +51,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-start pt-6 px-6">
-      {/* Logo - Esquina izquierda */}
+      {/* Logo */}
       <Image 
         src="/icons/icon.svg" 
         alt="HorekuOs Logo" 
@@ -60,7 +60,7 @@ export default function Navbar() {
         className="w-10 h-10 md:w-12 md:h-12"
       />
 
-      {/* Navbar centrada - Solo visible en desktop */}
+      {/* Navbar centrada */}
       <nav className="navbar hidden md:flex">
         <ul className="nav-list">
           {menuItems.map((item) => (
@@ -68,7 +68,7 @@ export default function Navbar() {
               key={item} 
               className={`nav-item ${activeItem === item ? 'active' : ''}`}>
               <a 
-                href={`#${item.toLowerCase()}`}
+                href={`/#${item.toLowerCase()}`}
                 className="nav-link"
                 onClick={(e) => handleLinkClick(item, e)}>
                 {item}
@@ -78,7 +78,7 @@ export default function Navbar() {
         </ul>
       </nav>
 
-      {/* Botón Premium - Esquina derecha */}
+      {/* Botón Premium */}
       <button className="premium-btn-corner">
         <Sparkles className="w-4 h-4" />
         <span className="hidden sm:inline">Prueba gratis</span>
