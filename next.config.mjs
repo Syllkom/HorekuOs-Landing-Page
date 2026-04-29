@@ -2,6 +2,7 @@
 const nextConfig = {
   /* config options here */
   reactStrictMode: true,
+  transpilePackages: ['react-syntax-highlighter'],
   turbopack: {
     rules: {
       '*.svg': {
