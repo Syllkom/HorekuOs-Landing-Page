@@ -585,243 +585,329 @@ interface MessageContext {
 
 ---
 
-## Socket Extensions (UI Premium)
+# Builders
 
-El archivo `SocketExtensions.js` inyecta métodos nativos de alto rendimiento al objeto `sock`. Estas funciones bypassean las validaciones básicas de Meta para generar interfaces de usuario empresariales (Native Flow V1).
+El archivo `SocketExtensions.js` actúa como un inyector de métodos nativos de alto rendimiento directamente sobre el objeto `sock` de Baileys. 
 
-### `sock.sendInteractiveMenu(jid, data, options)`
-Genera una interfaz interactiva universal inyectando un documento fantasma (`fileLength: 1GB`) para forzar la renderización HD de la miniatura.
+Estas funciones están diseñadas para **bypassear las validaciones estándar de Meta**, manipulando los nodos de Protobuf para generar interfaces de usuario de nivel Empresarial (Native Flow V1 y V3, Rich Responses, y Commerce).
 
-**Propiedades de `data.buttons` soportadas:**
-- `url`: Redirección a enlace externo.
-- `call`: Llamada telefónica.
-- `copy`: Copia texto al portapapeles (`payload`).
-- `reminder` / `cancel_reminder`: Sistema de alarmas nativo.
-- `address` / `location`: Solicitud de GPS o dirección.
-- `vcard`: Adjunta un contacto directamente.
-- `list`: Despliega un modal con secciones y filas (single_select).
+---
 
-**Ejemplo de uso:**
+## Botones Dinámicos (`mapButtons`)
+
+Todos los Interactive Builders y Commerce Builders utilizan un mapeador interno que traduce objetos simples de JavaScript a los nodos complejos que exige WhatsApp. 
+
+**Propiedades de `type` soportadas en el array de botones:**
+
+- `reply` *(default)*: Botón de respuesta rápida estándar (`quick_reply`).
+- `url`: Redirección a un enlace externo (`cta_url`).
+- `call`: Inicia una llamada telefónica (`cta_call`).
+- `copy`: Copia un texto oculto al portapapeles del usuario (`cta_copy`).
+- `reminder` / `cancel_reminder`: Sistema nativo para agendar eventos o alarmas en el calendario de WhatsApp (`cta_reminder`).
+- `address`: Solicita al usuario que envíe su dirección estructurada (`address_message`).
+- `location`: Solicita al usuario que comparta su ubicación GPS (`send_location`).
+- `vcard`: Adjunta y envía un contacto directamente (`vcard_message`).
+- `list`: Despliega un menú modal inferior con secciones y filas seleccionables (`single_select`).
+- `galaxy` / `flow`: Abre un **WhatsApp Flow** nativo (formularios interactivos, pantallas personalizadas) sin salir del chat (`galaxy_message`). Requiere pasar `token`, `flowId` y `metadata`.
+
+---
+
+## 1. Commerce Builders (E-Commerce)
+*Estos métodos simulan interacciones de WhatsApp Business sin necesidad de tener una cuenta comercial vinculada a un catálogo real de Meta.*
+
+### 1. Catálogo (`catalog`)
+**Explicación:** Genera un nodo `productMessage`. Bypassea la validación de catálogo de Meta, permitiendo enviar un producto visual con precio, imagen y enlace, simulando que pertenece a una tienda oficial.
+**Caso de uso:** Mostrar items VIP, rangos o productos físicos/digitales.
 ```javascript
-await sock.sendInteractiveMenu(m.chat.id, {
-    title: 'HorekuOs System',
-    body: 'Elige una opción',
-    footer: 'ⓘ Interactúa abajo',
-    thumbnail: bufferImagen, // Buffer o URL
-    buttons:[
-        { type: 'copy', text: 'Copiar API', payload: 'HK_12345' },
-        { type: 'url', text: 'Soporte', url: 'https://wa.me/...' }
-    ]
-});
-```
-
-### `sock.sendProfileCard(jid, data, options)`
-Genera una tarjeta de perfil híbrida. Permite combinar un botón de pago nativo (`review_and_pay`) con botones de respuesta rápida (`quick_reply`) en un solo bloque visual.
-
-**Ejemplo:**
-```javascript
-await sock.sendProfileCard(m.chat.id, {
-    image: bannerBuffer,
-    title: "HorekuOs Advanced Engine",
-    price: 374,
-    currency: "IDR",
-    body: "Menú Principal",
-    footer: "Powered by Syllkom",
-    buttonText: "Owner Contact",
-    buttonId: ".owner",
-    verified: false
-}, {
-    quoted: await sock.fakeOrder(m.chat.id, {
-        image: ppUrl,
-        message: `Versión: 3.0.2`,
-        orderTitle: m.sender.name,
-        price: 374,
-        currency: 'USD'
-    })
-});
-```
-
-### `sock.sendBottomSheet(jid, data, buttons, options)`
-Despliega un menú inferior nativo (Bottom Sheet) en la pantalla del usuario. Ideal para menús de configuración o listas de opciones largas.
-
-**Ejemplo:**
-```javascript
-await sock.sendBottomSheet(m.chat.id, {
-    title: "Configuración",
-    body: "Ajustes del grupo",
-    listTitle: "Opciones",
-    buttonTitle: "Abrir Menú"
-},[
-    { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "Antilink ON", id: ".antilink on" }) }
-]);
-```
-
-### `sock.sendAlbumMessage(jid, medias, options)`
-Agrupa múltiples imágenes o videos en un solo mensaje tipo "Álbum" (como en Instagram). Evita el spam visual en el chat.
-
-**Ejemplo:**
-```javascript
-const slides =[
-    { type: 'image', data: { url: 'link1.jpg' } },
-    { type: 'video', data: { url: 'link2.mp4' } }
-];
-await sock.sendAlbumMessage(m.chat.id, slides, { caption: "Resultados de búsqueda" });
-```
-
-### `sock.sendInvoice(jid, data, options)`
-Genera una tarjeta de facturación compacta (Fondo negro nativo) usando el botón de pago `review_and_pay` v1. Elude la carga de imágenes pesadas para no corromper la estética.
-
-**Ejemplo de uso (Economía):**
-```javascript
-await sock.sendInvoice(m.chat.id, { 
-    title: 'HorekuOs Banco',         
-    body: '● Billetera: 1000 Soles\n● Banco: 500 Soles',                        
-    footer: 'ⓘ Presiona ver pedido',  
-    orderId: 'Voucher_001',
-    itemName: 'Balance Total',        
-    itemCount: 1,                     
-    price: 1500,    
-    currency: 'PEN',
-    image: urlPerfil // Miniatura
-});
-```
-
-### `sock.resizePhoto(data)`
-Utilidad de alto rendimiento en RAM respaldada por `sharp`. Redimensiona imágenes y las comprime a JPEG para generar miniaturas (`jpegThumbnail`) compatibles con los Protobufs estrictos de Meta.
-
-**Ejemplo:**
-```javascript
-const thumbBuffer = await sock.resizePhoto({ 
-    image: bufferOriginal, 
-    scale: 300, 
-    result: 'buffer' 
-});
-```
-
-### `sock.sendRichResponse(jid, data, options)`
-La joya de la corona. Construye la interfaz visual nativa de Meta AI, renderizando Carruseles, Tablas, Bloques de Código iluminado y Popups de Citación.
-
-**Capacidades `data`:**
-- `links`: Array de `{title, url, thumbnail}` (Genera el BottomSheet de Fuentes).
-- `reels`: Array de objetos de video (Genera Carrusel deslizable `GenAIHScrollLayoutViewModel`).
-- `table`: Construye una tabla responsiva `{ title, headers, rows }`.
-- `code`: `{ language, code }` (Pasa por un Tokenizer interno para Highlight syntax).
-
-**Ejemplo de uso:**
-```javascript
-await sock.sendRichResponse(m.chat.id, {
-    text: "test:",
-    
-    links: linksData,
-    reels: reelsData,
-
-    table: {
-        title: "Status",
-        headers: ["Servidor", "Latencia"],
-        rows: [
-            ["Syllkom", "1.6ms"],
-            ["HorekuOs", "4.2ms"]
-        ]
-    },
-
-    code: {
-        language: "python",
-        code: pyCode
+await sock.sendMessage(m.chat.id, {
+    catalog: {
+        id: "ITEM_01",
+        title: "Rango VIP",
+        body: "Acceso a comandos exclusivos",
+        price: 5, // El builder lo multiplica x1000 automático
+        currency: "USD",
+        image: "https://files.catbox.moe/obz4b4.jpg",
+        retailerId: "HorekuOs",
+        url: "https://github.com/Syllkom"
     }
-});
+}, { quoted: m.message })
 ```
 
-### `sock.fakeOrder(jid, options)`
-Generador de contexto falso. Útil exclusivamente para inyectar en la propiedad `quoted` de otras funciones, simulando que el bot está respondiendo a una orden de pago inexistente.
-
-**Ejemplo de uso:**
+### 2. Orden / Recibo (`order`)
+**Explicación:** Construye un `orderMessage`. Muestra un recibo de compra nativo en el chat con el estado "Completado".
+**Caso de uso:** Confirmar transacciones en el sistema de economía (ej. "Has comprado 3 waifus por 1500 Soles").
 ```javascript
-const quotedFake = await sock.fakeOrder(m.chat.id, {
-    image: urlPerfil,
-    message: `Versión: 3.0.2`,
-    orderTitle: m.sender.name,
+await sock.sendMessage(m.chat.id, {
+    order: {
+        id: "ORDEN_123",
+        title: "Compra de Waifus",
+        text: "Transacción completada",
+        itemCount: 3,
+        price: 1500,
+        currency: "PEN",
+        image: "https://files.catbox.moe/obz4b4.jpg"
+    }
+}, { quoted: m.message })
+```
+
+### 3. Pago Nativo (`payment`)
+**Explicación:** Inyecta un `interactiveMessage` con el botón nativo `review_and_pay`. Permite integrar pasarelas de pago reales (como PIX en Brasil o tarjetas) directamente en la UI de WhatsApp.
+**Caso de uso:** Cobrar por servicios de hosting, sub-bots o accesos premium.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    payment: {
+        amount: 50,
+        currency: "BRL",
+        merchant: "Syllkom Store",
+        key: "pagos@syllkom.com", // Tu llave Pix o email
+        body: "Pago por servicios de hosting",
+        footer: "Transacción segura"
+    }
+}, { quoted: m.message })
+```
+
+### 4. Factura Interactiva (`invoice`)
+**Explicación:** Crea un desglose de cobro (`payment_requested`) con subtotales, impuestos y envío. Es la versión detallada y formal del `payment`.
+**Caso de uso:** Generar facturas formales para clientes del bot.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    invoice: {
+        title: "Factura #001",
+        subtitle: "Pendiente de pago",
+        body: "Detalles de tu compra en el bot",
+        footer: "Gracias por tu preferencia",
+        price: 25.50,
+        currency: "USD",
+        itemName: "Suscripción Mensual",
+        itemCount: 1,
+        orderId: "INV_001",
+        image: "https://files.catbox.moe/obz4b4.jpg"
+    }
+}, { quoted: m.message })
+```
+
+---
+
+## 2. Interactive Builders (Menús y UI)
+
+### 5. Menú Multimedia (`mediaMenu`)
+**Explicación:** Construye un menú interactivo con un encabezado multimedia. Su mayor hack es la inyección del nodo `limited_time_offer`, que crea una cuenta regresiva nativa en el chat.
+**Caso de uso:** Menús principales, eventos temporales o promociones con límite de tiempo.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    mediaMenu: {
+        title: "Menú Principal",
+        subtitle: "HorekuOs",
+        body: "Elige una opción:",
+        footer: "V3.0.0",
+        image: "https://files.catbox.moe/obz4b4.jpg", 
+        offer: { // Crea una oferta (icono)
+            text: "Descuento VIP",
+            code: "HOREKU2026"
+        },
+        buttons:[
+            { type: 'reply', text: 'Ping', id: 'btn_ping' },
+            { type: 'url', text: 'GitHub', url: 'https://github.com/Syllkom' }
+        ]
+    }
+}, { quoted: m.message })
+```
+
+### 6. Menú de Ubicación (`locationMenu`)
+**Explicación:** Envía un mapa interactivo. Inyecta un thumbnail en Base64 para renderizar la previsualización del mapa sin requerir coordenadas GPS reales validadas por Meta. Esta configurado para que las imágenes de de dimensionen a 300x300 ya que es lo máximo para que se pueda ver una imagen en vez del mapa.
+**Caso de uso:** Compartir la ubicación del servidor o solicitar el GPS del usuario mediante un botón.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    locationMenu: {
+        title: "Servidor Central",
+        body: "Ubicación del host",
+        locationName: "Data Center",
+        locationAddress: "Cali, Colombia",
+        mapImage: "https://files.catbox.moe/obz4b4.jpg",
+        // opcional:
+        buttons:[
+            { type: 'location', text: 'Compartir mi ubicación', id: 'loc_1' }
+        ]
+    }
+}, { quoted: m.message })
+```
+
+### 7. Menú Interactivo Base (`interactiveMenu`)
+**Explicación:** Genera una interfaz interactiva universal inyectando un documento fantasma (`fileLength: 0` o un PNG de 1x1)
+**Caso de uso:** Enviar PDFs, manuales o imágenes de alta calidad acompañadas de botones de acción.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    interactiveMenu: {
+        title: "Documentación",
+        body: "Descarga el manual",
+        footer: "HorekuOs",
+        document: bufferDelPDF,
+        fileName: "Manual.pdf",
+        thumbnail: bufferImagen, // Se renderizará en HD
+        buttons:[
+            { type: 'reply', text: 'Aceptar', id: 'btn_ok' }
+        ]
+    }
+}, { quoted: m.message })
+```
+
+### 8. Carrusel de Tarjetas (`cards`)
+**Explicación:** Genera un carrusel deslizable horizontalmente (Native Flow V3). Permite agrupar múltiples opciones visuales en un solo bloque.
+**Caso de uso:** Mostrar inventarios de Gacha, selección de personajes o catálogos de tiendas.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    cards: {
+        image: "https://files.catbox.moe/obz4b4.jpg",
+        text: "Waifu #1",
+        footer: "Desliza para ver más",
+        buttons:[{ type: 'reply', text: 'Reclamar', id: 'claim_1' }]
+    }
+}, { quoted: m.message })
+```
+
+### 9. Snapshot de Encuesta (`pollSnapshot`)
+**Explicación:** Falsifica el resultado de una encuesta. Envía un nodo `pollResultSnapshotMessage` que muestra una encuesta ya cerrada con votos predefinidos por el bot.
+**Caso de uso:** Mostrar estadísticas visuales o resultados de minijuegos.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    pollSnapshot: {
+        title: "Resultados de la votación",
+        stats:[
+            { name: "Opción A", value: 150 },
+            { name: "Opción B", value: 45 }
+        ]
+    }
+}, { quoted: m.message })
+```
+
+---
+
+## 3. Rich Builders (Estilo Meta AI)
+
+### 10. Respuesta Enriquecida (`richResponse`)
+**Explicación:** El hack definitivo. Falsifica el nodo `botForwardedMessage` para clonar la interfaz exclusiva de Meta AI. Permite enviar mensajes con citas (fuentes clickeables), bloques de código con resaltado de sintaxis, tablas nativas y carruseles de Reels.
+**Caso de uso:** Respuestas de la IA (Groq/Copilot), mostrar código fuente o resultados de búsqueda complejos.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    richResponse: {
+        text: "Aquí tienes los resultados de tu búsqueda:",
+        links: [ // Crea las citas tipo[1] [2]
+            { title: "Repo Oficial", url: "https://github.com/Syllkom" }
+        ],
+        code: { // Bloque de código con colores
+            language: "javascript",
+            code: "const db = await global.db.open('@rpg');"
+        },
+        table: { // Tabla nativa
+            title: "Top Usuarios",
+            headers:["Nombre", "Nivel"],
+            rows: [["Syllkom", "99"],["Zeppth", "98"] ]
+        },
+        reels:[ // Carrusel de Instagram Reels
+            { title: "Video 1", creator: "Syllkom", verified: true, videoUrl: "https://..." }
+        ]
+    }
+}, { quoted: m.message })
+```
+
+### 11. Álbum Nativo (`album`)
+**Explicación:** Agrupa múltiples elementos multimedia en un solo mensaje colapsable usando `messageAssociation`. Evita el spam visual en el chat.
+**Caso de uso:** Enviar resultados de búsquedas de imágenes (Pinterest/Google) o galerías de eventos.
+```javascript
+await sock.sendMessage(m.chat.id, {
+    album:[
+        { type: 'image', data: bufferImg1 },
+        { type: 'image', data: bufferImg2 },
+        { type: 'video', data: bufferVid1 }
+    ],
+    caption: "Galería del evento"
+}, { quoted: m.message })
+```
+
+---
+
+## 4. Fake Context Builders (Spoofing)
+
+**Explicación General:** Estos métodos **NO envían un mensaje**. Generan un objeto de contexto falso (`key` y `message`). Son útiles exclusivamente para inyectarlos en la propiedad `quoted` de otras funciones, simulando que el bot está respondiendo a un mensaje del sistema que en realidad nunca existió en el chat.
+
+### 12. Fake Order
+Simula que se está respondiendo a una orden de compra. Soporta imagen de miniatura y detalles completos del pedido.
+```javascript
+const fakeQ = await sock.fakeOrder(m.chat.id, { 
+    image: "https://files.catbox.moe/obz4b4.jpg", // Buffer o URL
+    orderId: "HK_V3",
+    itemCount: 374,
+    message: "Powered by Syllkom",
+    orderTitle: "HorekuOs Store",
     price: 374,
-    currency: 'USD'
-});
-// Pasarlo en options: { quoted: quotedFake }
+    currency: "USD"
+})
+await m.reply({ text: "Procesado." }, { quoted: fakeQ })
 ```
 
-### `sock.fakePayment(jid, options)`
-Generador de contexto falso. Útil exclusivamente para inyectar en la propiedad `quoted` de otras funciones, simulando que el bot está respondiendo a un Payment de pago inexistente.
-
-**Ejemplo de uso:**
+### 13. Fake Catalog
+Simula que se está respondiendo a un producto de catálogo.
 ```javascript
-const quotedFake = await sock.fakePayment(m.chat.id, {
-    message: `Diagnóstico solicitado por ${m.sender.name}`,
-    price: 3340,
-    currency: 'USD',
-    requestFrom: m.sender.id
-});
-// Pasarlo en options: { quoted: quotedFake }
-```
-
-### `sock.sendCatalog(jid, data, options)`
-Genera una tarjeta de producto de catálogo nativa (`productMessage`). Utiliza un bypass de JID fantasma (`0@s.whatsapp.net`) para evitar que los servidores de Meta validen el producto y arrojen el error de "Artículo no disponible".
-
-**Ejemplo:**
-```javascript
-await sock.sendCatalog(m.chat.id, {
-    title: "AlightMotion Mod Premium",
-    body: "● Soporte > 5MB\n● Sin marca de agua",
-    price: 0,
-    currency: "IDR",
-    image: bufferImagen, // Buffer o URL
-    url: "https://github.com/Syllkom"
-});
-```
-
-### `sock.sendOrder(jid, data, options)`
-Genera un recibo de orden de compra nativo (`orderMessage`). A diferencia del Invoice, este diseño es el clásico gris de WhatsApp Business. Es ideal para confirmaciones de transacciones o para usarlo como contexto falso (`fakeOrder`).
-
-**Ejemplo:**
-```javascript
-await sock.sendOrder(m.chat.id, {
-    title: "Suscripción VIP",
-    text: "Pago procesado con éxito",
-    itemCount: 1,
-    price: 15,
-    currency: "USD",
-    image: urlPerfil // Se comprime a miniatura automáticamente
-});
-```
-
-### `sock.sendPayment(jid, data, options)`
-Despliega una pasarela de pago directa (`interactiveMessage` con `review_and_pay`). Está configurada para integraciones de pagos estáticos (como PIX o Email) directamente en la UI del chat.
-
-**Ejemplo:**
-```javascript
-await sock.sendPayment(m.chat.id, {
-    body: "▢ *FACTURACIÓN*\nPor favor, completa el pago para continuar.",
-    footer: "Transacción Segura",
-    amount: 15, // Se multiplica por 100 internamente (Offset)
-    currency: "BRL",
-    merchant: "HorekuOs Store",
-    key: "pagos@horekuos.com" // Tu llave PIX o Email
-});
-```
-
-### `sock.sendCards(jid, data, options)`
-Genera una tarjeta interactiva genérica con un encabezado de imagen a tamaño completo (`imageMessage`) y soporte para botones nativos en la versión 3 del protocolo.
-
-**Ejemplo:**
-```javascript
-await sock.sendCards(m.chat.id, {
-    text: "▢ *MENÚ PRINCIPAL*\nSelecciona una opción:",
-    footer: "Powered by HorekuOs",
+const fakeQ = await sock.fakeCatalog(m.chat.id, { 
     image: "https://files.catbox.moe/obz4b4.jpg",
-    buttons:[
-        { 
-            name: "quick_reply", 
-            buttonParamsJson: JSON.stringify({ display_text: "Ping", id: ".ping" }) 
-        }
-    ]
-});
+    id: "PROD_001",
+    title: "Producto Estrella", 
+    body: "Descripción detallada del producto",
+    currency: "USD",
+    price: 50,
+    retailerId: "Syllkom",
+    url: "https://github.com/Syllkom"
+})
+await m.reply({ text: "Añadido al carrito." }, { quoted: fakeQ })
 ```
+
+### 14. Fake Payment
+Simula que se está respondiendo a una solicitud de pago.
+```javascript
+const fakeQ = await sock.fakePayment(m.chat.id, { 
+    id: "PAY_123",
+    fromMe: false,
+    participant: "0@s.whatsapp.net", // Opcional, útil en grupos
+    price: 100, 
+    currency: "USD", 
+    requestFrom: "0@s.whatsapp.net",
+    message: "Pago por servicios premium" 
+})
+await m.reply({ text: "Pago recibido." }, { quoted: fakeQ })
+```
+
+### 15. Fake Invoice
+Simula que se está respondiendo a una factura emitida.
+```javascript
+const fakeQ = await sock.fakeInvoice(m.chat.id, { 
+    image: "https://files.catbox.moe/obz4b4.jpg",
+    title: "Factura #001",
+    subtitle: "Pendiente",
+    body: "Detalles de la compra",
+    footer: "HorekuOs Store",
+    price: 100, 
+    currency: "USD",
+    orderId: "INV_001",
+    type: "physical-goods",
+    itemName: "Suscripción Premium",
+    itemCount: 1
+})
+await m.reply({ text: "Factura cancelada." }, { quoted: fakeQ })
+```
+
+### 16. Fake Link
+Simula que se está respondiendo a una previsualización de enlace (Link Preview) generada por el sistema.
+```javascript
+const fakeQ = await sock.fakeLink(m.chat.id, { 
+    image: "https://files.catbox.moe/obz4b4.jpg",
+    url: "https://horekuos.vercel.app", 
+    text: "Visita nuestro sitio web", // Texto que acompaña al link
+    title: "HorekuOs System", 
+    body: "Advanced Engine Verificado" 
+})
+await m.reply({ text: "Enlace seguro." }, { quoted: fakeQ })
+```
+
 
 ## Sistema de Plugins
 
